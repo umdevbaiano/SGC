@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de {{ membro.nome_completo }}</title>
+    <style>
+        @page { size: A4; margin: 2.5cm 2cm; }
+        body { font-family: sans-serif; }
+        h1, h2, h3 { color: #003366; }
+        h1 { text-align: center; }
+        .data-relatorio { text-align: center; margin-bottom: 25px; }
+        .section { margin-top: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Histórico de Conquistas</h1>
+    <h2>{{ membro.nome_completo }} ({{ membro.get_cargo_display }})</h2>
+    <p class="data-relatorio">Gerado em: {{ data_hoje|date:"d/m/Y" }}</p>
+
+    <div class="section">
+        <h3>Classes Concluídas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Classe</th>
+                    <th>Data de Conclusão</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conquista in classes_concluidas %}
+                <tr>
+                    <td>{{ conquista.classe.nome }} ({{ conquista.classe.get_nivel_display }})</td>
+                    <td>{{ conquista.data_conclusao|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Nenhuma classe concluída registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>Especialidades Concluídas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Especialidade</th>
+                    <th>Data de Conclusão</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conquista in especialidades_concluidas %}
+                <tr>
+                    <td>{{ conquista.especialidade.nome }}</td>
+                    <td>{{ conquista.data_conclusao|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Nenhuma especialidade concluída registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

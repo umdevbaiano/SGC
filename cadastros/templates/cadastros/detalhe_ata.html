@@ -1,0 +1,20 @@
+{% extends 'cadastros/base.html' %}
+{% block title %}{{ ata.titulo }}{% endblock %}
+{% block content %}
+<style>
+    .documento-header { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+    .documento-header p { margin: 4px 0; color: #555; }
+    .documento-conteudo { white-space: pre-wrap; /* Preserva quebras de linha e espaços */ }
+</style>
+
+<div class="documento-header">
+    <h1>{{ ata.titulo }}</h1>
+    <p><strong>Tipo:</strong> {{ ata.get_tipo_display }}</p>
+    <p><strong>Data:</strong> {{ ata.data|date:"d/m/Y" }}</p>
+    <p><strong>Responsável:</strong> {{ ata.responsavel }}</p>
+</div>
+
+<div class="documento-conteudo">
+    {{ ata.conteudo|linebreaks }}
+</div>
+{% endblock %}

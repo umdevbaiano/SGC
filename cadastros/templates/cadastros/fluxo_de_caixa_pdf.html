@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Fluxo de Caixa</title>
+    <style>
+        body { font-family: sans-serif; }
+        h1 { text-align: center; color: #003366; }
+        .data-relatorio { text-align: center; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .entrada { color: green; }
+        .saida { color: red; }
+        .resumo { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 5px; border: 1px solid #ddd; }
+        .saldo-positivo { color: green; font-weight: bold; }
+        .saldo-negativo { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Fluxo de Caixa</h1>
+    <p class="data-relatorio">Gerado em: {{ data_hoje|date:"d/m/Y" }}</p>
+
+    <div class="resumo">
+        <h3>Resumo Financeiro</h3>
+        <p><strong>Total de Entradas:</strong> <span class="entrada">R$ {{ total_entradas|floatformat:2 }}</span></p>
+        <p><strong>Total de Saídas:</strong> <span class="saida">R$ {{ total_saidas|floatformat:2 }}</span></p>
+        <hr>
+        <p><strong>Saldo Final: 
+            <span class="{% if saldo >= 0 %}saldo-positivo{% else %}saldo-negativo{% endif %}">
+                R$ {{ saldo|floatformat:2 }}
+            </span>
+        </strong></p>
+    </div>
+
+    <h2>Histórico de Transações</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Tipo</th>
+                <th>Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transacao in transacoes %}
+            <tr>
+                <td>{{ transacao.data|date:"d/m/Y" }}</td>
+                <td>{{ transacao.descricao }}</td>
+                {% if transacao.tipo == 'E' %}
+                    <td class="entrada">Entrada</td>
+                    <td class="entrada">+ {{ transacao.valor|floatformat:2 }}</td>
+                {% else %}
+                    <td class="saida">Saída</td>
+                    <td class="saida">- {{ transacao.valor|floatformat:2 }}</td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">Nenhuma transação registrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

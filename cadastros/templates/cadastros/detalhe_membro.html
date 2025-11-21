@@ -1,0 +1,133 @@
+{% extends 'cadastros/base.html' %}
+
+{% block title %}Detalhes de {{ membro.nome_completo }}{% endblock %}
+
+{% block content %}
+    <style>
+        hr { 
+            border: 0; 
+            border-top: 1px solid #eee; 
+            margin: 20px 0; 
+        }
+
+        /* Estilos para a seção de mensalidades */
+        .mensalidades-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+            gap: 10px; 
+            margin-top: 10px; 
+        }
+        .mes { 
+            padding: 10px; 
+            border-radius: 5px; 
+            text-align: center; 
+            font-weight: bold; 
+        }
+        .status-pago { 
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .status-pendente { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+
+        /* Estilos para a Ficha Médica */
+        .ficha-medica-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .info-item { 
+            word-wrap: break-word; 
+        }
+        .info-item strong { 
+            color: #333; 
+        }
+        .info-item p { 
+            margin: 4px 0 0 0; 
+            color: #555; 
+        }
+        .info-full { 
+            grid-column: 1 / -1; /* Ocupa a largura total */
+        }
+        .info-contato-emergencia { 
+            grid-column: 1 / -1; 
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-weight: bold;
+        }
+    </style>
+
+    <h1>{{ membro.nome_completo }}</h1>
+    <p><strong>Cargo:</strong> {{ membro.get_cargo_display }}</p>
+    <hr>
+    <p><strong>Unidade:</strong> {{ membro.unidade.nome|default:"Não definida" }}</p>
+    <p><strong>Classe Atual:</strong> {{ membro.classe_atual.nome|default:"Não definida" }}</p>
+    <p><strong>Data de Nascimento:</strong> {{ membro.data_nascimento|date:"d/m/Y" }} ({{ membro.idade }} anos)</p>
+    <p><strong>Responsável:</strong> {{ membro.nome_responsavel|default:"-" }}</p>
+    <p><strong>Telefone do Responsável:</strong> {{ membro.telefone_responsavel|default:"-" }}</p>
+
+    <hr>
+    <h3>Mensalidades - {{ ano_referencia }}</h3>
+    <div class="mensalidades-grid">
+        {% for mes in status_mensalidades %}
+            <div class="mes {% if mes.pago %}status-pago{% else %}status-pendente{% endif %}">
+                {{ mes.nome }}<br>
+                {% if mes.pago %}✔️ Pago{% else %}❌ Pendente{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <hr>
+    <h3>Ficha Médica</h3>
+    
+    {% if membro.fichamedica %}
+        <div class="ficha-medica-grid">
+            <div class="info-item">
+                <strong>Tipo Sanguíneo:</strong>
+                <p>{{ membro.fichamedica.get_tipo_sanguineo_display }}</p>
+            </div>
+            <div class="info-item">
+                <strong>Plano de Saúde:</strong>
+                <p>{{ membro.fichamedica.plano_de_saude|default:"Não informado" }}</p>
+            </div>
+            <div class="info-item info-full">
+                <strong>Alergias:</strong>
+                <p>{{ membro.fichamedica.alergias|default:"Nenhuma informada"|linebreaksbr }}</p>
+            </div>
+            <div class="info-item info-full">
+                <strong>Medicamentos de Uso Contínuo:</strong>
+                <p>{{ membro.fichamedica.medicamentos_uso_continuo|default:"Nenhum informado"|linebreaksbr }}</p>
+            </div>
+            <div class="info-item info-full">
+                <strong>Observações Adicionais:</strong>
+                <p>{{ membro.fichamedica.observacoes|default:"Nenhuma"|linebreaksbr }}</p>
+            </div>
+            <div class="info-item info-contato-emergencia">
+                <strong>Contato de Emergência:</strong>
+                <p>{{ membro.fichamedica.contato_emergencia_nome }} (Tel: {{ membro.fichamedica.contato_emergencia_telefone }})</p>
+            </div>
+        </div>
+    {% else %}
+        <p>A ficha médica deste membro ainda não foi preenchida.</p>
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">{{ membro.nome_completo }}</h1>
+            <p class="lead mb-0">{{ membro.get_cargo_display }}</p>
+        </div>
+        <a href="{% url 'gerar_pdf_historico_membro' pk=membro.pk %}" class="btn btn-secondary" target="_blank" style="background-color: #0055a4;">Gerar Histórico em PDF</a>
+    </div>
+    <hr>
+
+    <hr>
+    <a href="{% url 'lista_membros' %}" class="btn btn-outline-secondary w-100">← Voltar para a Lista de Membros</a>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Membros</title>
+    <style>
+        body { font-family: sans-serif; }
+        h1 { text-align: center; color: #003366; }
+        p { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10pt; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Relatório Geral de Membros</h1>
+    <p>Gerado em: {{ data_hoje|date:"d/m/Y" }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nome Completo</th>
+                <th>Cargo</th>
+                <th>Unidade</th>
+                <th>Idade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membro in membros %}
+            <tr>
+                <td>{{ membro.nome_completo }}</td>
+                <td>{{ membro.get_cargo_display }}</td>
+                <td>{{ membro.unidade.nome|default:"-" }}</td>
+                <td>{{ membro.idade }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">Nenhum membro ativo cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

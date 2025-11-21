@@ -1,0 +1,67 @@
+{% extends 'cadastros/base.html' %}
+
+{% block title %}Fluxo de Caixa{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Fluxo de Caixa</h1>
+    <a href="{% url 'gerar_pdf_caixa' %}" class="btn btn-secondary" style="background-color: #0055a4;">Gerar PDF</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Resumo Financeiro</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p class="text-uppercase small">Total de Entradas</p>
+                <p class="h4 text-success">R$ {{ total_entradas|floatformat:2 }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="text-uppercase small">Total de Saídas</p>
+                <p class="h4 text-danger">R$ {{ total_saidas|floatformat:2 }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="text-uppercase small">Saldo Atual</p>
+                <p class="h4 fw-bold {% if saldo >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    R$ {{ saldo|floatformat:2 }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h4">Histórico de Transações</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Tipo</th>
+                <th>Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transacao in transacoes %}
+            <tr>
+                <td>{{ transacao.data|date:"d/m/Y" }}</td>
+                <td>{{ transacao.descricao }}</td>
+                {% if transacao.tipo == 'E' %}
+                    <td class="text-success">Entrada</td>
+                    <td class="text-success">+ {{ transacao.valor|floatformat:2 }}</td>
+                {% else %}
+                    <td class="text-danger">Saída</td>
+                    <td class="text-danger">- {{ transacao.valor|floatformat:2 }}</td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">Nenhuma transação registrada ainda.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

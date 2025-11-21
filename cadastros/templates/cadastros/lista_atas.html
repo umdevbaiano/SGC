@@ -1,0 +1,22 @@
+{% extends 'cadastros/base.html' %}
+{% block title %}Livro de Atas e Atos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Livro de Atas e Atos</h1>
+    <a href="{% url 'gerar_pdf_atas' %}" class="btn btn-secondary" style="background-color: #0055a4;">Gerar PDF</a>
+</div>
+
+<div class="list-group">
+{% for ata in atas %}
+    <a href="{% url 'detalhe_ata' pk=ata.pk %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ ata.titulo }}</h5>
+            <small>{{ ata.data|date:"d/m/Y" }}</small>
+        </div>
+        <p class="mb-1">{{ ata.get_tipo_display }}</p>
+    </a>
+{% empty %}
+    <p>Nenhuma ata ou ato registrado ainda.</p>
+{% endfor %}
+</div>
+{% endblock %}
