@@ -10,11 +10,12 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
+class _DashboardScreenState extends State<DashboardScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
-  
+
   // Variável de Estado para os dados reais
-  String _totalMembros = "..."; 
+  String _totalMembros = "...";
 
   // Controladores de Animação de Entrada
   late AnimationController _controller;
@@ -24,20 +25,22 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    
+
     // 1. Configura a Animação de Entrada
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
 
@@ -50,7 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     try {
       final repo = MembroRepository();
       final membros = await repo.getMembros();
-      
+
       if (mounted) {
         setState(() {
           _totalMembros = membros.length.toString();
@@ -85,15 +88,15 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       pageBuilder: (context, animation, secondaryAnimation) => pagina,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0); // Começa na direita
-        const end = Offset.zero;        // Termina no centro
-        const curve = Curves.ease;      // Curva suave
+        const end = Offset.zero; // Termina no centro
+        const curve = Curves.ease; // Curva suave
 
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
 
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
+        return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
   }
@@ -111,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
           const SizedBox(width: 8),
         ],
       ),
-      
+
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
@@ -152,29 +155,31 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       physics: const BouncingScrollPhysics(),
                       children: [
                         _buildSummaryCard(
-                          icon: Icons.groups_rounded, 
-                          label: "Membros", 
+                          icon: Icons.groups_rounded,
+                          label: "Membros",
                           value: _totalMembros,
                           color: AppTheme.primaryBlue,
-                          onTap: () {
-                            // Navega usando a animação de slide
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
-                              _criarRotaComSlide(const MembrosListScreen()),
+                              MaterialPageRoute(
+                                builder: (context) => const MembrosListScreen(),
+                              ),
                             );
+                            _carregarDados();
                           },
                         ),
                         _buildSummaryCard(
-                          icon: Icons.account_balance_wallet_rounded, 
-                          label: "Em Caixa", 
-                          value: "R\$ 1.250", 
-                          color: const Color(0xFF2E7D32), 
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: "Em Caixa",
+                          value: "R\$ 1.250",
+                          color: const Color(0xFF2E7D32),
                           onTap: () {},
                         ),
                         _buildSummaryCard(
-                          icon: Icons.workspace_premium_rounded, 
-                          label: "Classes", 
-                          value: "15", 
+                          icon: Icons.workspace_premium_rounded,
+                          label: "Classes",
+                          value: "15",
                           color: AppTheme.secondaryGold,
                           isDarkText: true,
                           onTap: () {},
@@ -197,13 +202,13 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         ),
                       ),
                       TextButton(
-                        onPressed: () {}, 
+                        onPressed: () {},
                         child: const Text("Ver tudo"),
-                      )
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  
+
                   _buildAlertCard(
                     title: "3 Autorizações Pendentes",
                     subtitle: "Acampamento de Verão",
@@ -227,18 +232,20 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
+        onDestinationSelected: (index) async {
           setState(() => _selectedIndex = index);
 
           // Lógica de Navegação da Barra Inferior
-          if (index == 1) { // Membros
-            Navigator.push(
+          if (index == 1) {
+            // Membros
+            await Navigator.push(
               context,
               _criarRotaComSlide(const MembrosListScreen()),
             ).then((_) {
               // Quando voltar, reseta o ícone para Home
               setState(() => _selectedIndex = 0);
             });
+            _carregarDados();
           }
         },
         backgroundColor: Colors.white,
@@ -247,33 +254,34 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         indicatorColor: AppTheme.secondaryGold.withOpacity(0.3),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined), 
+            icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard_rounded),
-            label: 'Início'
+            label: 'Início',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline_rounded), 
+            icon: Icon(Icons.people_outline_rounded),
             selectedIcon: Icon(Icons.people_rounded),
-            label: 'Membros'
+            label: 'Membros',
           ),
           NavigationDestination(
-            icon: Icon(Icons.attach_money_rounded), 
-            label: 'Financ.'
+            icon: Icon(Icons.attach_money_rounded),
+            label: 'Financ.',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_rounded), 
-            label: 'Menu'
-          ),
+          NavigationDestination(icon: Icon(Icons.menu_rounded), label: 'Menu'),
         ],
       ),
-      
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Futuro: Tela de cadastro rápido
         },
         backgroundColor: AppTheme.secondaryGold,
         elevation: 4,
-        child: const Icon(Icons.add_rounded, color: AppTheme.primaryBlue, size: 30),
+        child: const Icon(
+          Icons.add_rounded,
+          color: AppTheme.primaryBlue,
+          size: 30,
+        ),
       ),
     );
   }
@@ -281,15 +289,15 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   // --- WIDGETS CUSTOMIZADOS ---
 
   Widget _buildSummaryCard({
-    required IconData icon, 
-    required String label, 
-    required String value, 
+    required IconData icon,
+    required String label,
+    required String value,
     required Color color,
     bool isDarkText = false,
     required VoidCallback onTap,
   }) {
     final textColor = isDarkText ? AppTheme.primaryBlue : Colors.white;
-    
+
     return Container(
       width: 150,
       margin: const EdgeInsets.only(right: 16, bottom: 8, top: 8),
@@ -319,19 +327,19 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      value, 
+                      value,
                       style: TextStyle(
-                        fontSize: 26, 
-                        fontWeight: FontWeight.bold, 
-                        color: textColor
-                      )
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
                     Text(
-                      label, 
+                      label,
                       style: TextStyle(
-                        fontSize: 14, 
-                        color: textColor.withOpacity(0.8)
-                      )
+                        fontSize: 14,
+                        color: textColor.withOpacity(0.8),
+                      ),
                     ),
                   ],
                 ),
@@ -344,9 +352,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   }
 
   Widget _buildAlertCard({
-    required String title, 
-    required String subtitle, 
-    required IconData icon, 
+    required String title,
+    required String subtitle,
+    required IconData icon,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -377,9 +385,18 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                   ],
                 ),
               ),

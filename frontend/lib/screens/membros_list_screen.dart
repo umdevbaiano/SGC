@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../models/membro.dart';
 import '../repositories/membro_repository.dart';
+import 'membro_cadastro_screen.dart';
+import 'membro_detalhes_screen.dart';
 
 class MembrosListScreen extends StatefulWidget {
   const MembrosListScreen({super.key});
@@ -82,9 +84,18 @@ class _MembrosListScreenState extends State<MembrosListScreen> {
       body: _buildBody(),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Futuro: Tela de Cadastro
-        },
+        onPressed: () async {
+    // Navega e espera voltar
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MembroCadastroScreen()),
+    );
+
+    // Se voltou com "true" (salvou com sucesso), recarrega a lista
+    if (result == true) {
+      _carregarMembros();
+    }
+  },
         backgroundColor: AppTheme.secondaryGold,
         child: const Icon(Icons.person_add, color: AppTheme.primaryBlue),
       ),
@@ -154,7 +165,13 @@ class _MembrosListScreenState extends State<MembrosListScreen> {
         ),
         trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
         onTap: () {
-          // Futuro: Ir para Detalhes
+          // Navega para a tela de detalhes
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MembroDetalhesScreen(membro: membro),
+            ),
+          );
         },
       ),
     );
@@ -172,14 +189,15 @@ class _MembrosListScreenState extends State<MembrosListScreen> {
     // Define cor baseada se está ativo ou não
     final corFundo = membro.ativo ? AppTheme.primaryBlue : Colors.grey;
 
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: corFundo.withOpacity(0.1),
-      child: Text(
-        iniciais.toUpperCase(),
-        style: TextStyle(
-          color: corFundo,
-          fontWeight: FontWeight.bold,
+    // --- ESTE É O ÚNICO RETURN QUE DEVE FICAR ---
+    return Hero(
+      tag: 'avatar-${membro.id}', // A TAG MÁGICA
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: corFundo.withOpacity(0.1),
+        child: Text(
+          iniciais.toUpperCase(),
+          style: TextStyle(color: corFundo, fontWeight: FontWeight.bold),
         ),
       ),
     );
