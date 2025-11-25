@@ -1,0 +1,24 @@
+# --- GERAL (Sistema Operacional e IDEs) ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# --- BACKEND (PYTHON / DJANGO) ---
+backend/venv/
+backend/*.sqlite3
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/media/
+backend/static/
+
+# --- FRONTEND (FLUTTER / DART) ---
+frontend/.dart_tool/
+frontend/.pub/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/ios/Flutter/Generated.xcconfig
+frontend/android/local.properties
