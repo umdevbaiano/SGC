@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../repositories/membro_repository.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,7 +12,10 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   
-  // Controladores para animação de entrada
+  // Variável de Estado para os dados reais
+  String _totalMembros = "..."; 
+
+  // Controladores de Animação
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -19,7 +23,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    // Configura a animação de entrada (800 milissegundos)
+    
+    // 1. Configura a Animação
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -33,8 +38,32 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
-    // Inicia a animação assim que a tela abre
     _controller.forward();
+
+    // 2. Busca os Dados Reais da API
+    _carregarDados();
+  }
+
+  // Função que vai até o Django buscar os dados
+  Future<void> _carregarDados() async {
+    try {
+      final repo = MembroRepository();
+      final membros = await repo.getMembros();
+      
+      // Se a tela ainda estiver aberta, atualiza o número
+      if (mounted) {
+        setState(() {
+          _totalMembros = membros.length.toString();
+        });
+      }
+    } catch (e) {
+      print("Erro ao carregar dados: $e");
+      if (mounted) {
+        setState(() {
+          _totalMembros = "-"; // Indica erro visualmente
+        });
+      }
+    }
   }
 
   @override
@@ -43,7 +72,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     super.dispose();
   }
 
-  // Lógica para saudação dinâmica
   String get _greeting {
     var hour = DateTime.now().hour;
     if (hour < 12) return 'Bom dia';
@@ -58,14 +86,10 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         title: const Text("SGC Pro"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_rounded), // Ícone arredondado é mais moderno
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Sem novas notificações")),
-              );
-            },
+            icon: const Icon(Icons.notifications_none_rounded),
+            onPressed: () {},
           ),
-          const SizedBox(width: 8), // Espaço extra na direita
+          const SizedBox(width: 8),
         ],
       ),
       
@@ -73,100 +97,106 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20), // Um pouco mais de respiro
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Saudação Dinâmica
-                Text(
-                  "$_greeting, Diretor Samuel!",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+          child: RefreshIndicator( // Permite puxar para atualizar
+            onRefresh: _carregarDados,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Saudação
+                  Text(
+                    "$_greeting, Diretor!",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const Text(
-                  "Visão Geral",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryBlue,
-                    letterSpacing: -0.5,
+                  const Text(
+                    "Visão Geral",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryBlue,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // 2. Carrossel de Resumo (Agora Interativo)
-                SizedBox(
-                  height: 160, // Aumentamos um pouco para caber o design novo
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(), // Efeito elástico (estilo iOS)
+                  // Carrossel de Resumo
+                  SizedBox(
+                    height: 160,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        _buildSummaryCard(
+                          icon: Icons.groups_rounded, 
+                          label: "Membros", 
+                          value: _totalMembros, // <--- DADO REAL DA API
+                          color: AppTheme.primaryBlue,
+                          onTap: () {
+                            // Futuro: Navegar para lista de membros
+                          },
+                        ),
+                        _buildSummaryCard(
+                          icon: Icons.account_balance_wallet_rounded, 
+                          label: "Em Caixa", 
+                          value: "R\$ 1.250", // Fictício por enquanto
+                          color: const Color(0xFF2E7D32), 
+                          onTap: () {},
+                        ),
+                        _buildSummaryCard(
+                          icon: Icons.workspace_premium_rounded, 
+                          label: "Classes", 
+                          value: "15", // Fictício por enquanto
+                          color: AppTheme.secondaryGold,
+                          isDarkText: true,
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Alertas
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildSummaryCard(
-                        icon: Icons.groups_rounded, 
-                        label: "Membros", 
-                        value: "42", 
-                        color: AppTheme.primaryBlue,
-                        onTap: () => print("Clicou em Membros"),
+                      const Text(
+                        "Atenção Necessária",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
-                      _buildSummaryCard(
-                        icon: Icons.account_balance_wallet_rounded, 
-                        label: "Em Caixa", 
-                        value: "R\$ 1.250", 
-                        color: const Color(0xFF2E7D32), // Verde Floresta
-                        onTap: () => print("Clicou em Caixa"),
-                      ),
-                      _buildSummaryCard(
-                        icon: Icons.workspace_premium_rounded, 
-                        label: "Classes", 
-                        value: "15", 
-                        color: AppTheme.secondaryGold,
-                        isDarkText: true, // Texto escuro no fundo amarelo fica melhor
-                        onTap: () => print("Clicou em Classes"),
-                      ),
+                      TextButton(
+                        onPressed: () {}, 
+                        child: const Text("Ver tudo"),
+                      )
                     ],
                   ),
-                ),
-                const SizedBox(height: 32),
-
-                // 3. Seção de Alertas (Visual mais limpo)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Atenção Necessária",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {}, 
-                      child: const Text("Ver tudo"),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 8),
-                
-                _buildAlertCard(
-                  title: "3 Autorizações Pendentes",
-                  subtitle: "Acampamento de Verão",
-                  icon: Icons.warning_amber_rounded,
-                  color: AppTheme.alertRed,
-                  onTap: () {},
-                ),
-                _buildAlertCard(
-                  title: "2 Aniversariantes",
-                  subtitle: "Próximos 7 dias",
-                  icon: Icons.cake_rounded,
-                  color: AppTheme.secondaryGold,
-                  onTap: () {},
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  
+                  _buildAlertCard(
+                    title: "3 Autorizações Pendentes",
+                    subtitle: "Acampamento de Verão",
+                    icon: Icons.warning_amber_rounded,
+                    color: AppTheme.alertRed,
+                    onTap: () {},
+                  ),
+                  _buildAlertCard(
+                    title: "2 Aniversariantes",
+                    subtitle: "Próximos 7 dias",
+                    icon: Icons.cake_rounded,
+                    color: AppTheme.secondaryGold,
+                    onTap: () {},
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -178,7 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         backgroundColor: Colors.white,
         elevation: 10,
         shadowColor: Colors.black26,
-        indicatorColor: AppTheme.secondaryGold.withOpacity(0.3), // Indicador mais suave
+        indicatorColor: AppTheme.secondaryGold.withOpacity(0.3),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined), 
@@ -202,7 +232,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       ),
       
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          // Futuro: Abrir tela de cadastro
+        },
         backgroundColor: AppTheme.secondaryGold,
         elevation: 4,
         child: const Icon(Icons.add_rounded, color: AppTheme.primaryBlue, size: 30),
@@ -210,7 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     );
   }
 
-  // --- WIDGETS REFINADOS ---
+  // --- WIDGETS CUSTOMIZADOS ---
 
   Widget _buildSummaryCard({
     required IconData icon, 
@@ -224,7 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     
     return Container(
       width: 150,
-      margin: const EdgeInsets.only(right: 16, bottom: 8, top: 8), // Margem para a sombra
+      margin: const EdgeInsets.only(right: 16, bottom: 8, top: 8),
       child: Material(
         color: color,
         borderRadius: BorderRadius.circular(20),
@@ -239,7 +271,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Ícone com fundo translúcido
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -284,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 0, // Flat design para a lista, mas com borda
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.grey.shade200),
@@ -300,7 +331,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1), // Fundo bem suave da cor do alerta
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color),
@@ -316,7 +347,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Colors.grey), // Seta indicando clique
+              const Icon(Icons.chevron_right_rounded, color: Colors.grey),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme.dart'; // Importando nossas cores
 import 'dashboard_screen.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controladores para pegar o texto digitado
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   // Variável para controlar o "olhinho" da senha
   bool _isObscure = true;
 
@@ -22,7 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppTheme.white, // Fundo branco limpo
       body: Center(
-        child: SingleChildScrollView( // Permite rolar se a tela for pequena
+        child: SingleChildScrollView(
+          // Permite rolar se a tela for pequena
           padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      _isObscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                     ),
                     onPressed: () {
                       setState(() {
@@ -83,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              
+
               // 4. ESQUECI MINHA SENHA
               Align(
                 alignment: Alignment.centerRight,
@@ -98,11 +102,43 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 height: 56, // Botão alto e moderno
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                  onPressed: () async {
+                    // 1. Feedback visual (opcional: mostrar loading)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Conectando ao servidor..."),
+                      ),
                     );
+
+                    // 2. Chamar o serviço de login
+                    final authService = AuthService();
+                    final email = _emailController.text;
+                    final senha = _passwordController.text;
+
+                    // 3. Tentar logar
+                    final sucesso = await authService.login(email, senha);
+
+                    if (sucesso) {
+                      // Se deu certo, vai para o Dashboard
+                      if (mounted) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardScreen(),
+                          ),
+                        );
+                      }
+                    } else {
+                      // Se deu errado, avisa o usuário
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Erro! Verifique usuário e senha."),
+                            backgroundColor: AppTheme.alertRed,
+                          ),
+                        );
+                      }
+                    }
                   },
                   child: const Text("ENTRAR"),
                 ),
