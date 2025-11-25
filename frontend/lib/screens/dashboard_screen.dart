@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../repositories/membro_repository.dart';
+import 'membros_list_screen.dart'; // Import da tela de lista
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,7 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   // Variável de Estado para os dados reais
   String _totalMembros = "..."; 
 
-  // Controladores de Animação
+  // Controladores de Animação de Entrada
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -24,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   void initState() {
     super.initState();
     
-    // 1. Configura a Animação
+    // 1. Configura a Animação de Entrada
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -50,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       final repo = MembroRepository();
       final membros = await repo.getMembros();
       
-      // Se a tela ainda estiver aberta, atualiza o número
       if (mounted) {
         setState(() {
           _totalMembros = membros.length.toString();
@@ -79,6 +79,25 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     return 'Boa noite';
   }
 
+  // --- FUNÇÃO DE NAVEGAÇÃO COM ANIMAÇÃO LATERAL ---
+  Route _criarRotaComSlide(Widget pagina) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => pagina,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0); // Começa na direita
+        const end = Offset.zero;        // Termina no centro
+        const curve = Curves.ease;      // Curva suave
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
-          child: RefreshIndicator( // Permite puxar para atualizar
+          child: RefreshIndicator(
             onRefresh: _carregarDados,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -135,23 +154,27 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         _buildSummaryCard(
                           icon: Icons.groups_rounded, 
                           label: "Membros", 
-                          value: _totalMembros, // <--- DADO REAL DA API
+                          value: _totalMembros,
                           color: AppTheme.primaryBlue,
                           onTap: () {
-                            // Futuro: Navegar para lista de membros
+                            // Navega usando a animação de slide
+                            Navigator.push(
+                              context,
+                              _criarRotaComSlide(const MembrosListScreen()),
+                            );
                           },
                         ),
                         _buildSummaryCard(
                           icon: Icons.account_balance_wallet_rounded, 
                           label: "Em Caixa", 
-                          value: "R\$ 1.250", // Fictício por enquanto
+                          value: "R\$ 1.250", 
                           color: const Color(0xFF2E7D32), 
                           onTap: () {},
                         ),
                         _buildSummaryCard(
                           icon: Icons.workspace_premium_rounded, 
                           label: "Classes", 
-                          value: "15", // Fictício por enquanto
+                          value: "15", 
                           color: AppTheme.secondaryGold,
                           isDarkText: true,
                           onTap: () {},
@@ -204,7 +227,20 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+
+          // Lógica de Navegação da Barra Inferior
+          if (index == 1) { // Membros
+            Navigator.push(
+              context,
+              _criarRotaComSlide(const MembrosListScreen()),
+            ).then((_) {
+              // Quando voltar, reseta o ícone para Home
+              setState(() => _selectedIndex = 0);
+            });
+          }
+        },
         backgroundColor: Colors.white,
         elevation: 10,
         shadowColor: Colors.black26,
@@ -233,7 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Futuro: Abrir tela de cadastro
+          // Futuro: Tela de cadastro rápido
         },
         backgroundColor: AppTheme.secondaryGold,
         elevation: 4,
