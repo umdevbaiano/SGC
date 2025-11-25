@@ -1,4 +1,4 @@
-# ⚜️ SGC Pro - Sistema de Gerenciamento de Clube (V2)
+# ⚜️ SGC Pro - Sistema de Gerenciamento de Clube
 
 > **"Não basta funcionar, tem que ser bonito, intuitivo e escalável."**
 
