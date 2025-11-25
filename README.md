@@ -1,9 +1,3 @@
-Com certeza\! Um README bem feito é o "cartão de visitas" do seu projeto. Como você quer algo que misture o profissionalismo de um portfólio técnico com a sua personalidade e a jornada que tivemos, preparei um texto que conta a **história** da evolução do projeto (do monólito para a arquitetura distribuída).
-
-Aqui está uma proposta. Você pode copiar, colar no seu `README.md` e ajustar os links/imagens.
-
------
-
 # ⚜️ SGC Pro - Sistema de Gerenciamento de Clube (V2)
 
 > **"Não basta funcionar, tem que ser bonito, intuitivo e escalável."**
